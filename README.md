@@ -1,4 +1,4 @@
-#Wikipedia Graph Searcher
+# Wikipedia Graph Searcher
 
 The Wikipedia Graph Searcher takes in a Wikipedia link and constructs a directed graph of webpages connected to the original link.
 
