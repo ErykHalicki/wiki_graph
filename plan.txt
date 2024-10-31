@@ -12,3 +12,10 @@ once every link has been added, add the current link to the visited hash table
 at each node, store distance from root. distance of parent + 1
 
 Finish time: 00:45 October 31
+
+
+Next steps:
+implement A*
+heuristic will be the similarity between 2 concepts
+https://en.wikipedia.org/wiki/Semantic_similarity
+
