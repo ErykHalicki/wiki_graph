@@ -1,0 +1,14 @@
+Wikipedia Graph Theory
+
+start time: 10PM October 30
+
+need to make a page (node) base class
+stores every link in the page as an edge 
+need a hash table which stores all visited pages
+start at some page (probably cow)
+build out using bfs
+iterate through all links on current page, adding them to a "to visit" queue
+once every link has been added, add the current link to the visited hash table
+at each node, store distance from root. distance of parent + 1
+
+Finish time: 00:45 October 31
