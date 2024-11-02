@@ -5,5 +5,7 @@ The Wikipedia Graph Searcher takes in a Wikipedia link and constructs a directed
 It currently utilizes breadth-first search to recursively create a graph containing every link in the starting Wikipedia page
 
 I will soon implement an A* type path finding algorithm that can find the shortest path between 2 pages (distance being the amount of link jumps)
+![demo1](demo1.png)
+![demo2](demo2.png)
 ![graph2](bfs_graph2.png)
 ![graph](bfs_graph.png)
