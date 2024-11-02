@@ -12,8 +12,9 @@ class graph:
     def __init__(self, start_link="",max_workers=10):
         self.root = node(start_link)
         self.max_workers=max_workers
-        self.max_iteration=10000
+        self.max_iteration=1000000
         self.node_list = []
+        self.last_write_index = 0
 
     def bfs(self, max_depth):
         visited = set()
@@ -125,9 +126,9 @@ class graph:
 
 if __name__ == "__main__":
     g = graph(start_link=sys.argv[1], max_workers=50)
-    g.reconstruct("Fortnite.json")
-    #g.bfs(3)
+    #g.reconstruct("Life.json")
+    g.bfs(8)
+    g.save(f"{g.root.link}.json")
     path = g.search(sys.argv[2])
     print(path)
-    #g.save(f"{g.root.link}.json")
 

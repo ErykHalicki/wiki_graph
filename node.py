@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 
 class node:
-    def __init__(self, link, parent=None, link_limit=100):
+    def __init__(self, link, parent=None, link_limit=1000):
         if(parent != None):
             self.depth = parent.depth+1
         else:
