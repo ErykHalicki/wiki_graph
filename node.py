@@ -1,8 +1,9 @@
 import requests
 from bs4 import BeautifulSoup
 
+
 class node:
-    def __init__(self,link,parent=None, link_limit = 100):
+    def __init__(self, link, parent=None, link_limit=100):
         if(parent != None):
             self.depth = parent.depth+1
         else:
@@ -12,6 +13,7 @@ class node:
         self.link = link
         self.prefix = 'https://en.wikipedia.org/wiki/'
         self.link_limit = link_limit
+        self.distance=1000 #no 2 pages will ever be 1000 links apart, so this is practically infinity
 
     def valid_link(self, link):
         if (link.startswith('/wiki/')
@@ -43,3 +45,6 @@ class node:
         except requests.exceptions.RequestException as e:
             print(f"Error fetching the URL: {e}")
             return []
+
+    def __lt__(self, other):
+        return (self.distance < other.distance)
