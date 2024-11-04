@@ -9,12 +9,36 @@ import sys
 prefix = 'https://en.wikipedia.org/wiki/'
 
 class graph:
-    def __init__(self, start_link="",max_workers=10):
+    def __init__(self, start_link="",max_workers=15):
         self.root = node(start_link)
         self.max_workers=max_workers
         self.max_iteration=1000000
         self.node_list = []
         self.last_write_index = 0
+
+    def get_neighbor_batch(self, nodes):
+        visited = set()
+        unvisited = deque(nodes)
+        result = list()
+        searched=0
+        while(len(unvisited) > 0):
+            def pop_and_fetch_neighbors():
+                current_page = unvisited.popleft()
+                if (current_page.link in visited):
+                    return
+                visited.add(current_page.link)# marks current page as visited so it isnt reexplored
+                result.append(current_page)
+                current_page.get_all_neighbors()# getting all neighbors to the current page
+                #print(f"{current_page.link} has {len(current_page.neighbors)} neighbors")
+
+            pool = concurrent.futures.ThreadPoolExecutor(max_workers=self.max_workers)
+            for i in range(min(len(unvisited), self.max_workers)):
+                pool.submit(pop_and_fetch_neighbors)
+                searched+=1
+            pool.shutdown(wait=True)
+            #print(f"got {round(searched/len(nodes)*100)}% of all nodes")
+
+        return result
 
     def bfs(self, node, max_depth):
         visited = set()
@@ -50,63 +74,45 @@ class graph:
             #print(f"\tLength of unvisited page list at iteration {iteration} is {len(unvisited)}")
         #print("Done BFS")
 
-    def heuristic(self, node, target):
-        #this function calculates the estiamted distance between 2 concepts
-        #if the return value is low, the 2 links are similar, so we should continue out search in that direction
-
-        #using inverse jaccard similarity of the neighboring node links
-
-        
-
-        node_links, target_links = set([neighbor.link for neighbor in node.neighbors]), set([neighbor.link for neighbor in target.neighbors])
-        intersection = node_links.intersection(target_links)
-        union = node_links.union(target_links)
-        #since we are using inverse jaccard similarity, a high similarity results in a lower score, i.e a lower distance
-        return len(union) / len(intersection) / 1000. if intersection else 1
-
-    def a_star(self, start_link, target_link):#node link is the target link
-        #same steps as dijkstra's, but add heuristic, and make it online
-
+    def best_first(self, start_link, target_link):#node link is the target link
         target = node(target_link)
         target.get_all_neighbors()
 
         start = node(start_link)
-        start.distance = 0
 
-        visited = set()
-        heap = list()
-
-        heapq.heappush(heap,start)
+        visited = set()#used to keep track of links already visited
 
         current = start
-
-        while (current.link != target_link
-               and heap != []
-               and current.distance != 10000000):
-            current = heapq.heappop(heap)
-            print(f"{current.link} Distance: {current.distance}")
-            if (current in visited):
-                continue
-            current.get_all_neighbors()
-            for neighbor in current.neighbors:
-                if (current.distance + 1 < neighbor.distance):
-                    print(f"Evaluating {current.link} -> {neighbor.link}")
-                    neighbor.get_all_neighbors()
-                    neighbor.distance = current.distance + 1 + self.heuristic(neighbor, target)
-                    neighbor.parent = current
-                    heapq.heappush(heap, neighbor)
-            visited.add(current)
-
+        found = False
         path = []
-        if (current.link == target_link):
-            print("found target node!")
-            while (current != self.root):
-                path.append(current.link)
-                current = current.parent
-            path.append(self.root.link)
-            path.reverse()
-        else:
-            print("couldnt find target node!")
+        print(f"Searching for a path between: {start_link} and {target_link}")
+        while not found:
+            path.append(current.link)
+            if(current.link == target_link):
+                found = True
+                break
+            current.get_all_neighbors()
+            self.get_neighbor_batch(current.neighbors)
+            best_neighbor = current.neighbors[0]
+            for neighbor in current.neighbors:
+                if(neighbor.link not in visited):
+                    neighbor.get_similarity_to(target)
+                    if(neighbor.similarity < best_neighbor.similarity):
+                        best_neighbor = neighbor
+                        print(f"new best: {current.link} -> {neighbor.link}. Distance: {round(neighbor.similarity,2)}\n")
+                    if(best_neighbor.similarity == 0):
+                        print("found final link!")
+                        found = True
+                        break
+            current = best_neighbor
+            visited.add(current.link)
+            print(f"clicking {best_neighbor.link}")
+
+        print("Path was:")
+        for n in path[:-1]:
+            print(n)
+            print("  |\n  V")
+        print(path[-1])
         return path
 
 
@@ -184,22 +190,29 @@ class graph:
             print(f"Couldnt find node {self.root.link}, defaulting to {self.node_list[0].link} for root")
             self.root = self.node_list[0]
 
-
-if __name__ == "__main__":
-    g = graph(start_link=sys.argv[1], max_workers=50)
-    #g.reconstruct("Life.json")
-    #g.bfs(8)
-    #g.save(f"{g.root.link}.json")
-    #path = g.search(sys.argv[2])
-    #print(path)
-
-    g.a_star(sys.argv[1], sys.argv[2])
+def main():
+    g = graph()
+    g.best_first(sys.argv[1], sys.argv[2])
+    '''
+    g.reconstruct("Life.json")
+    g.bfs(8)
+    g.save(f"{g.root.link}.json")
+    path = g.search(sys.argv[2])
+    print(path)
 
     start = node(sys.argv[1])
     target = node(sys.argv[2])
 
     start.get_all_neighbors()
     target.get_all_neighbors()
+    print(f"distance between {sys.argv[1]} and {sys.argv[2]} is {start.get_similarity_to(target)}")
+    '''
 
-    print(f"distance between {sys.argv[1]} and {sys.argv[2]} is {g.heuristic(start, target)}")
+
+if __name__ == "__main__":
+    if(len(sys.argv) != 3):
+        print("please enter 2 Wikipedia topics")
+    else:
+        main()
+
 
