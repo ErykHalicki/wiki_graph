@@ -9,7 +9,7 @@ import sys
 prefix = 'https://en.wikipedia.org/wiki/'
 
 class graph:
-    def __init__(self, start_link="",max_workers=15):
+    def __init__(self, start_link="",max_workers=30):
         self.root = node(start_link)
         self.max_workers=max_workers
         self.max_iteration=1000000
@@ -36,7 +36,7 @@ class graph:
                 pool.submit(pop_and_fetch_neighbors)
                 searched+=1
             pool.shutdown(wait=True)
-            #print(f"got {round(searched/len(nodes)*100)}% of all nodes")
+            print(f"got {round(searched/len(nodes)*100)}% of all nodes")
 
         return result
 
@@ -88,7 +88,7 @@ class graph:
         print(f"Searching for a path between: {start_link} and {target_link}")
         while not found:
             path.append(current.link)
-            if(current.link == target_link):
+            if(current.link.lower() == target_link.lower()):
                 found = True
                 break
             current.get_all_neighbors()
@@ -97,13 +97,9 @@ class graph:
             for neighbor in current.neighbors:
                 if(neighbor.link not in visited):
                     neighbor.get_similarity_to(target)
-                    if(neighbor.similarity < best_neighbor.similarity):
+                    if(neighbor.similarity - neighbor.link_size/50 < best_neighbor.similarity - best_neighbor.link_size/50):
                         best_neighbor = neighbor
-                        print(f"new best: {current.link} -> {neighbor.link}. Distance: {round(neighbor.similarity,2)}\n")
-                    if(best_neighbor.similarity == 0):
-                        print("found final link!")
-                        found = True
-                        break
+                        print(f"new best: {current.link} -> {neighbor.link}. Distance: {round(neighbor.similarity - neighbor.link_size/50,2)}\n")
             current = best_neighbor
             visited.add(current.link)
             print(f"clicking {best_neighbor.link}")
