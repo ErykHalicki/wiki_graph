@@ -7,9 +7,9 @@ It ranks the links within the page using Jaccard Similarity, then progresses thr
 Below are some example runs:
 
 ## Daft Punk -> Korean Fried Chicken
-![demo3](photos/demo3.png)
+![demo](photos/demo.png)
 
-##Older versions
+## Older versions
 The following are screenshots of older versions of the program, when it was utilizing breadth first search and Dijkstra's algorithm
 
 ### Some visualizations
