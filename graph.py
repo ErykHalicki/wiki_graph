@@ -9,7 +9,7 @@ import sys
 prefix = 'https://en.wikipedia.org/wiki/'
 
 class graph:
-    def __init__(self, start_link="",max_workers=30):
+    def __init__(self, start_link="",max_workers=100):
         self.root = node(start_link)
         self.max_workers=max_workers
         self.max_iteration=1000000
@@ -17,17 +17,15 @@ class graph:
         self.last_write_index = 0
 
     def get_neighbor_batch(self, nodes):
-        visited = set()
         unvisited = deque(nodes)
-        result = list()
         searched=0
+        visited = set()
         while(len(unvisited) > 0):
             def pop_and_fetch_neighbors():
                 current_page = unvisited.popleft()
                 if (current_page.link in visited):
                     return
                 visited.add(current_page.link)# marks current page as visited so it isnt reexplored
-                result.append(current_page)
                 current_page.get_all_neighbors()# getting all neighbors to the current page
                 #print(f"{current_page.link} has {len(current_page.neighbors)} neighbors")
 
@@ -37,8 +35,6 @@ class graph:
                 searched+=1
             pool.shutdown(wait=True)
             print(f"got {round(searched/len(nodes)*100)}% of all nodes")
-
-        return result
 
     def bfs(self, node, max_depth):
         visited = set()
@@ -97,9 +93,9 @@ class graph:
             for neighbor in current.neighbors:
                 if(neighbor.link not in visited):
                     neighbor.get_similarity_to(target)
-                    if(neighbor.similarity - neighbor.link_size/50 < best_neighbor.similarity - best_neighbor.link_size/50):
+                    if(neighbor.similarity < best_neighbor.similarity):
                         best_neighbor = neighbor
-                        print(f"new best: {current.link} -> {neighbor.link}. Distance: {round(neighbor.similarity - neighbor.link_size/50,2)}\n")
+                        print(f"new best: {current.link} -> {neighbor.link}. Distance: {round(neighbor.similarity,2)}\n")
             current = best_neighbor
             visited.add(current.link)
             print(f"clicking {best_neighbor.link}")

@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 
 
 class node:
-    def __init__(self, link, parent=None, link_limit=400):
+    def __init__(self, link, parent=None, link_limit=1000):
         if(parent != None):
             self.depth = parent.depth+1
         else:
@@ -16,6 +16,7 @@ class node:
         self.distance=1000 #no 2 pages will ever be 1000 links apart, so this is practically infinity
         self.similarity=1000
         self.link_size = 0 
+        self.link_size_strength = 0.01 #ex. 1000 links in a page will make score 1000 * 0.1 = 100 lower
 
     def valid_link(self, link):
         if (link.startswith('/wiki/')
@@ -45,7 +46,7 @@ class node:
         union = node_links.union(target_links)
         #since we are using inverse jaccard similarity, a high similarity results in a lower score, i.e a lower distance
 
-        self.similarity = (len(union) / len(intersection) - 1) if intersection else 1000
+        self.similarity = (len(union) / (len(intersection) + min(1000,self.link_size) * self.link_size_strength)) if intersection else 1000
 
     def get_all_neighbors(self):
         if(len(self.neighbors) != 0):
